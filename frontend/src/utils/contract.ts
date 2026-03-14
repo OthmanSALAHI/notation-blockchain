@@ -3,7 +3,7 @@ import { ethers } from "ethers";
 // ─────────────────────────────────────────
 // CONTRACT ADDRESS (deployed on localhost)
 // ─────────────────────────────────────────
-export const CONTRACT_ADDRESS = "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512";
+export const CONTRACT_ADDRESS = import.meta.env.VITE_CONTRACT_ADDRESS;
 
 // ─────────────────────────────────────────
 // CONTRACT ABI
@@ -144,7 +144,7 @@ export const CONTRACT_ABI = [
 
 // Read-only (no wallet needed — for public stats)
 export const getReadOnlyContract = () => {
-  const provider = new ethers.JsonRpcProvider("http://127.0.0.1:8545");
+  const provider = new ethers.JsonRpcProvider(import.meta.env.VITE_ALCHEMY_URL);
   return new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, provider);
 };
 
