@@ -34,6 +34,7 @@ contract NotationEnseignant {
 
     event EnseignantAjoute(uint256 indexed id, string nom);
     event NoteAjoutee(uint256 indexed teacherId, uint256 note);
+    event EnseignantSupprime(uint256 indexed id);
 
     // ─────────────────────────────────────────
     // CONSTRUCTOR
@@ -72,6 +73,16 @@ contract NotationEnseignant {
             existe: true
         });
         emit EnseignantAjoute(nombreEnseignants, _nom);
+    }
+
+    // Remove a teacher (only owner)
+    function supprimerEnseignant(uint256 _teacherId)
+        public
+        seulementProprietaire
+        enseignantExiste(_teacherId)
+    {
+        enseignants[_teacherId].existe = false;
+        emit EnseignantSupprime(_teacherId);
     }
 
     // Submit anonymous rating (1 to 5)
@@ -131,17 +142,25 @@ contract NotationEnseignant {
         return aVote[hashEtudiant];
     }
 
-    // Get all teachers list
+    // Get all teachers list (active only)
     function getTousEnseignants()
         public
         view
         returns (uint256[] memory ids, string[] memory noms)
     {
-        ids = new uint256[](nombreEnseignants);
-        noms = new string[](nombreEnseignants);
+        uint256 count = 0;
         for (uint256 i = 1; i <= nombreEnseignants; i++) {
-            ids[i - 1] = i;
-            noms[i - 1] = enseignants[i].nom;
+            if (enseignants[i].existe) count++;
+        }
+        ids = new uint256[](count);
+        noms = new string[](count);
+        uint256 index = 0;
+        for (uint256 i = 1; i <= nombreEnseignants; i++) {
+            if (enseignants[i].existe) {
+                ids[index] = i;
+                noms[index] = enseignants[i].nom;
+                index++;
+            }
         }
         return (ids, noms);
     }
