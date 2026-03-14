@@ -18,6 +18,8 @@ const App: React.FC = () => {
     voting,
     ajouterEnseignant,
     addingTeacher,
+    supprimerEnseignant,
+    deletingTeacher,
     error,
     success,
     refreshData,
@@ -102,8 +104,11 @@ const App: React.FC = () => {
 
         <AdminPanel
           isConnected={isConnected}
+          enseignants={enseignants}
           ajouterEnseignant={ajouterEnseignant}
           addingTeacher={addingTeacher}
+          supprimerEnseignant={supprimerEnseignant}
+          deletingTeacher={deletingTeacher}
         />
       </div>
 

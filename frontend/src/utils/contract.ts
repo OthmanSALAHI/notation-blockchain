@@ -73,6 +73,21 @@ export const CONTRACT_ABI = [
     "type": "function"
   },
   {
+    "anonymous": false,
+    "inputs": [
+      { "indexed": true, "internalType": "uint256", "name": "id", "type": "uint256" }
+    ],
+    "name": "EnseignantSupprime",
+    "type": "event"
+  },
+  {
+    "inputs": [{ "internalType": "uint256", "name": "_teacherId", "type": "uint256" }],
+    "name": "supprimerEnseignant",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
     "inputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
     "name": "enseignants",
     "outputs": [

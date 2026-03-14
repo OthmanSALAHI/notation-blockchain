@@ -32,6 +32,8 @@ interface UseContractReturn {
   // Admin
   ajouterEnseignant: (nom: string) => Promise<void>;
   addingTeacher: boolean;
+  supprimerEnseignant: (teacherId: number) => Promise<void>;
+  deletingTeacher: boolean;
 
   // Errors
   error: string | null;
@@ -51,6 +53,7 @@ export const useContract = (): UseContractReturn => {
   const [loadingEnseignants, setLoadingEnseignants] = useState(false);
   const [voting, setVoting] = useState(false);
   const [addingTeacher, setAddingTeacher] = useState(false);
+  const [deletingTeacher, setDeletingTeacher] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
@@ -238,6 +241,28 @@ export const useContract = (): UseContractReturn => {
   };
 
   // ─────────────────────────────────────────
+  // DELETE A TEACHER (OWNER ONLY)
+  // ─────────────────────────────────────────
+  const supprimerEnseignant = async (teacherId: number) => {
+    if (!window.ethereum) throw new Error("MetaMask n'est pas installé.");
+    try {
+      setDeletingTeacher(true);
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      const signer = await provider.getSigner();
+      const contract = getSignedContract(signer);
+      const tx = await contract.supprimerEnseignant(teacherId);
+      await tx.wait();
+      await refreshData();
+    } catch (err: any) {
+      if (err?.message?.includes("Seulement le proprietaire")) throw new Error("Ce wallet n'est pas propriétaire du contrat.");
+      if (err?.message?.includes("user rejected")) throw new Error("Transaction annulée.");
+      throw new Error(err?.message || "Erreur lors de la suppression.");
+    } finally {
+      setDeletingTeacher(false);
+    }
+  };
+
+  // ─────────────────────────────────────────
   // AUTO CONNECT IF ALREADY CONNECTED
   // ─────────────────────────────────────────
   useEffect(() => {
@@ -277,6 +302,8 @@ export const useContract = (): UseContractReturn => {
     voting,
     ajouterEnseignant,
     addingTeacher,
+    supprimerEnseignant,
+    deletingTeacher,
     error,
     success,
     refreshData,

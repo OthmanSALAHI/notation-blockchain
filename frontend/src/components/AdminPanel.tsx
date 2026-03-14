@@ -3,16 +3,22 @@ import adminCredentials from "../data/adminCredentials.json";
 
 interface AdminPanelProps {
   isConnected: boolean;
+  enseignants: { id: number; nom: string }[];
   ajouterEnseignant: (nom: string) => Promise<void>;
   addingTeacher: boolean;
+  supprimerEnseignant: (teacherId: number) => Promise<void>;
+  deletingTeacher: boolean;
 }
 
 const SESSION_KEY = "admin_authenticated";
 
 const AdminPanel: React.FC<AdminPanelProps> = ({
   isConnected,
+  enseignants,
   ajouterEnseignant,
   addingTeacher,
+  supprimerEnseignant,
+  deletingTeacher,
 }) => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -165,6 +171,38 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
           {addingTeacher ? "Transaction en cours..." : "Ajouter l'enseignant"}
         </button>
       </form>
+
+      {enseignants.length > 0 && (
+        <div className="mt-6">
+          <h3 className="text-gray-400 text-sm mb-3">Enseignants enregistrés</h3>
+          <div className="space-y-2">
+            {enseignants.map((e) => (
+              <div
+                key={e.id}
+                className="flex items-center justify-between bg-gray-800 border border-gray-700 px-4 py-2 rounded-lg"
+              >
+                <span className="text-white text-sm">{e.nom}</span>
+                <button
+                  onClick={async () => {
+                    setActionError(null);
+                    setActionSuccess(null);
+                    try {
+                      await supprimerEnseignant(e.id);
+                      setActionSuccess(`"${e.nom}" supprimé avec succès.`);
+                    } catch (err: any) {
+                      setActionError(err?.message || "Erreur lors de la suppression.");
+                    }
+                  }}
+                  disabled={!isConnected || deletingTeacher}
+                  className="text-xs bg-red-800 hover:bg-red-700 text-red-200 px-3 py-1 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {deletingTeacher ? "..." : "Supprimer"}
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
