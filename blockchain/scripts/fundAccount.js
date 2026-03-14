@@ -10,7 +10,7 @@ async function main() {
     "0x166C1c1895F0eA56EAa60ADEf4548491A50Cd3Cb"
   ];
   
-  const amountToSend = "10.0"; // ETH to send to each account
+  const amountToSend = "599.0"; // ETH to send to each account
   
   const provider = ethers.provider;
   const [deployer] = await ethers.getSigners();

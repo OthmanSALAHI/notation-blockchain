@@ -1,7 +1,7 @@
 const { ethers } = require("hardhat");
 
 async function main() {
-  const contractAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
+  const contractAddress = "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512";
   
   const teachers = [
     "Dr. Jean Dupont",
@@ -13,7 +13,22 @@ async function main() {
 
   console.log("Adding 5 teachers to the contract...\n");
 
-  const contract = await ethers.getContractAt("NotationEnseignant", contractAddress);
+  let signer;
+  if (process.env.ADMIN_PRIVATE_KEY) {
+    signer = new ethers.Wallet(process.env.ADMIN_PRIVATE_KEY, ethers.provider);
+  } else {
+    [signer] = await ethers.getSigners();
+  }
+
+  const contract = await ethers.getContractAt("NotationEnseignant", contractAddress, signer);
+  const owner = await contract.proprietaire();
+  const signerAddress = await signer.getAddress();
+
+  if (owner.toLowerCase() !== signerAddress.toLowerCase()) {
+    throw new Error(
+      `Signer ${signerAddress} is not contract owner ${owner}. Use ADMIN_PRIVATE_KEY for the owner account.`
+    );
+  }
 
   for (let i = 0; i < teachers.length; i++) {
     console.log(`${i + 1}. Adding: ${teachers[i]}`);

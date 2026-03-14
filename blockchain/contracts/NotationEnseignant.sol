@@ -39,8 +39,9 @@ contract NotationEnseignant {
     // CONSTRUCTOR
     // ─────────────────────────────────────────
 
-    constructor() {
-        proprietaire = msg.sender;
+    constructor(address _proprietaire) {
+        require(_proprietaire != address(0), "Adresse admin invalide");
+        proprietaire = _proprietaire;
     }
 
     // ─────────────────────────────────────────
