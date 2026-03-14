@@ -18,6 +18,7 @@ interface UseContractReturn {
   account: string | null;
   isConnected: boolean;
   connectWallet: () => Promise<void>;
+  disconnectWallet: () => Promise<void>;
 
   // Teachers
   enseignants: Enseignant[];
@@ -27,6 +28,10 @@ interface UseContractReturn {
   noterEnseignant: (teacherId: number, note: number) => Promise<void>;
   aDejaVote: (teacherId: number) => Promise<boolean>;
   voting: boolean;
+
+  // Admin
+  ajouterEnseignant: (nom: string) => Promise<void>;
+  addingTeacher: boolean;
 
   // Errors
   error: string | null;
@@ -45,8 +50,13 @@ export const useContract = (): UseContractReturn => {
   const [enseignants, setEnseignants] = useState<Enseignant[]>([]);
   const [loadingEnseignants, setLoadingEnseignants] = useState(false);
   const [voting, setVoting] = useState(false);
+  const [addingTeacher, setAddingTeacher] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+
+  const handleAccountsChanged = useCallback((accounts: string[]) => {
+    setAccount(accounts[0] || null);
+  }, []);
 
   // ─────────────────────────────────────────
   // CONNECT METAMASK
@@ -66,13 +76,30 @@ export const useContract = (): UseContractReturn => {
 
       setAccount(accounts[0]);
 
-      // Listen for account changes
-      window.ethereum.on("accountsChanged", (accounts: string[]) => {
-        setAccount(accounts[0] || null);
-      });
-
     } catch (err: any) {
       setError("Erreur de connexion: " + err.message);
+    }
+  };
+
+  const disconnectWallet = async () => {
+    try {
+      setError(null);
+      setSuccess(null);
+
+      if (window.ethereum) {
+        // Best effort: some wallets support revoking account permission.
+        await window.ethereum
+          .request({
+            method: "wallet_revokePermissions",
+            params: [{ eth_accounts: {} }],
+          })
+          .catch(() => undefined);
+      }
+
+      setAccount(null);
+    } catch (err: any) {
+      setError("Erreur de deconnexion: " + err.message);
+      setAccount(null);
     }
   };
 
@@ -173,6 +200,44 @@ export const useContract = (): UseContractReturn => {
   };
 
   // ─────────────────────────────────────────
+  // ADD A TEACHER (OWNER ONLY)
+  // ─────────────────────────────────────────
+  const ajouterEnseignant = async (nom: string) => {
+    const nomNettoye = nom.trim();
+
+    if (!nomNettoye) {
+      throw new Error("Le nom de l'enseignant est requis.");
+    }
+
+    if (!window.ethereum) {
+      throw new Error("MetaMask n'est pas installé.");
+    }
+
+    try {
+      setAddingTeacher(true);
+
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      const signer = await provider.getSigner();
+      const contract = getSignedContract(signer);
+
+      const tx = await contract.ajouterEnseignant(nomNettoye);
+      await tx.wait();
+
+      await refreshData();
+    } catch (err: any) {
+      if (err?.message?.includes("Seulement le proprietaire")) {
+        throw new Error("Ce wallet n'est pas propriétaire du contrat.");
+      }
+      if (err?.message?.includes("user rejected")) {
+        throw new Error("Transaction annulée.");
+      }
+      throw new Error(err?.message || "Erreur lors de l'ajout de l'enseignant.");
+    } finally {
+      setAddingTeacher(false);
+    }
+  };
+
+  // ─────────────────────────────────────────
   // AUTO CONNECT IF ALREADY CONNECTED
   // ─────────────────────────────────────────
   useEffect(() => {
@@ -190,15 +255,28 @@ export const useContract = (): UseContractReturn => {
     refreshData();
   }, [refreshData]);
 
+  useEffect(() => {
+    if (!window.ethereum) return;
+
+    window.ethereum.on("accountsChanged", handleAccountsChanged);
+
+    return () => {
+      window.ethereum?.removeListener?.("accountsChanged", handleAccountsChanged);
+    };
+  }, [handleAccountsChanged]);
+
   return {
     account,
     isConnected: !!account,
     connectWallet,
+    disconnectWallet,
     enseignants,
     loadingEnseignants,
     noterEnseignant,
     aDejaVote,
     voting,
+    ajouterEnseignant,
+    addingTeacher,
     error,
     success,
     refreshData,

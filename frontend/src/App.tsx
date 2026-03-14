@@ -3,17 +3,21 @@ import { useContract } from "./hooks/useContract";
 import ConnectWallet from "./components/ConnectWallet";
 import RateTeacher from "./components/RateTeacher";
 import Statistics from "./components/Statistics";
+import AdminPanel from "./components/AdminPanel";
 
 const App: React.FC = () => {
   const {
     account,
     isConnected,
     connectWallet,
+    disconnectWallet,
     enseignants,
     loadingEnseignants,
     noterEnseignant,
     aDejaVote,
     voting,
+    ajouterEnseignant,
+    addingTeacher,
     error,
     success,
     refreshData,
@@ -28,6 +32,7 @@ const App: React.FC = () => {
           account={account}
           isConnected={isConnected}
           connectWallet={connectWallet}
+          disconnectWallet={disconnectWallet}
         />
       </div>
 
@@ -94,6 +99,12 @@ const App: React.FC = () => {
             refreshData={refreshData}
           />
         </div>
+
+        <AdminPanel
+          isConnected={isConnected}
+          ajouterEnseignant={ajouterEnseignant}
+          addingTeacher={addingTeacher}
+        />
       </div>
 
       {/* ── FOOTER ── */}

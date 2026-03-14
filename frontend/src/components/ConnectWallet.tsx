@@ -4,12 +4,14 @@ interface ConnectWalletProps {
   account: string | null;
   isConnected: boolean;
   connectWallet: () => Promise<void>;
+  disconnectWallet: () => Promise<void>;
 }
 
 const ConnectWallet: React.FC<ConnectWalletProps> = ({
   account,
   isConnected,
   connectWallet,
+  disconnectWallet,
 }) => {
   // Shorten address: 0x1234...5678
   const shortAddress = (addr: string) =>
@@ -29,11 +31,19 @@ const ConnectWallet: React.FC<ConnectWalletProps> = ({
 
       {/* Wallet Button */}
       {isConnected && account ? (
-        <div className="flex items-center gap-2 bg-green-800 px-4 py-2 rounded-full">
-          <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-          <span className="text-green-300 text-sm font-mono">
-            {shortAddress(account)}
-          </span>
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 bg-green-800 px-4 py-2 rounded-full">
+            <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+            <span className="text-green-300 text-sm font-mono">
+              {shortAddress(account)}
+            </span>
+          </div>
+          <button
+            onClick={disconnectWallet}
+            className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-full text-sm font-semibold transition-all duration-200 hover:scale-105 active:scale-95"
+          >
+            Deconnecter
+          </button>
         </div>
       ) : (
         <button
